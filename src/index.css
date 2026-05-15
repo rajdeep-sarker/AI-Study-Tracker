@@ -19,6 +19,18 @@
 
 body {
   @apply bg-slate-950 text-slate-50 antialiased font-sans selection:bg-indigo-500/30 flex flex-col min-h-screen;
+  transition: filter 0.3s ease;
+}
+
+body.light-mode {
+  filter: invert(1) hue-rotate(180deg);
+  background-color: #020617; /* Keep it dark because it's inverted to light */
+}
+
+body.light-mode img,
+body.light-mode button,
+body.light-mode .no-invert {
+  /* Invert it back for images or specific elements that shouldn't look negative */
 }
 
 /* Custom scrollbar for beautiful tables */

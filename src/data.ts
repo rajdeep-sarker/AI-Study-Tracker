@@ -3,7 +3,6 @@ import { SyllabusSubject } from "./types";
 export const TASKS = [
   "Do Class",
   "Academic Handnote",
-  "Handnote Mastery",
   "Textbook Reading",
   "Concept Book",
   "Textbook Problems",

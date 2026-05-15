@@ -123,26 +123,69 @@ export function ChatBox({ trackerData, profile, onClose }: { trackerData: any; p
     try {
       const historyToSend = currentMessages.slice(1).map(m => ({ role: m.role, text: m.text }));
       
-      const res = await fetch("/api/ai/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: userMsg,
-          trackerData: activeTab === "advisor" ? trackerData : null,
-          profile: profile,
-          promptType: activeTab,
-          files: filesToSend,
-          history: historyToSend,
-        }),
+      const { GoogleGenAI } = await import("@google/genai");
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      if (!apiKey) throw new Error("Gemini API key is not configured. Please add it to your environment variables on Netlify.");
+
+      const ai = new GoogleGenAI({ apiKey });
+      
+      let systemInstruction = "";
+      const profileString = profile ? `User Profile: Name: ${profile.name || "N/A"}, Group: ${profile.group || "N/A"}, College: ${profile.college || "N/A"}, HSC Year: ${profile.hscYear || "N/A"}` : "";
+      
+      if (activeTab === "advisor") {
+        systemInstruction = `You are an expert academic advisor for HSC students. ${profileString}. Analyze the student's progress data if provided:
+${trackerData ? JSON.stringify(trackerData) : "No data provided."}
+Focus on guiding them on what to do next, highlight backlogs, and suggest a strategy. Keep it concise, engaging, and in Markdown format.
+IMPORTANT: Reply in the same language the user uses. If they speak Bengali, respond in Bengali. If they speak English, respond in English. Default to English if unclear.`;
+      } else if (activeTab === "doubt") {
+        systemInstruction = `You are a friendly and clear tutor for HSC students. ${profileString}. The user has a doubt.
+You may receive class slides, main book extracts, or practice sheets as file attachments. Use them contextually.
+Explain their doubt simply, referencing the provided materials/context where applicable. Use examples. Provide response in Markdown.
+IMPORTANT: Reply in the same language the user uses. If they speak Bengali, respond in Bengali. If they speak English, respond in English. Default to English if unclear.`;
+      }
+
+      const contents: any[] = [];
+      if (historyToSend && Array.isArray(historyToSend)) {
+        historyToSend.forEach((msg) => {
+          contents.push({
+            role: msg.role === "ai" ? "model" : "user",
+            parts: [{ text: msg.text }]
+          });
+        });
+      }
+
+      const currentParts: any[] = [];
+      if (filesToSend && Array.isArray(filesToSend)) {
+        filesToSend.forEach((f: any) => {
+          currentParts.push({
+            inlineData: {
+              data: f.data,
+              mimeType: f.mimeType
+            }
+          });
+        });
+      }
+      
+      currentParts.push({ text: userMsg });
+      
+      contents.push({
+        role: "user",
+        parts: currentParts
       });
 
-      if (!res.ok) throw new Error("API request failed");
-      const data = await res.json();
+      const response = await ai.models.generateContent({
+        model: "gemini-1.5-flash",
+        contents: contents,
+        config: {
+          systemInstruction: systemInstruction,
+          temperature: 0.7,
+        }
+      });
       
-      updateCurrentSession((prev) => [...prev, { role: "ai", text: data.text }]);
-    } catch (error) {
-      console.error(error);
-      updateCurrentSession((prev) => [...prev, { role: "ai", text: "Sorry, something went wrong. Please try again." }]);
+      updateCurrentSession((prev) => [...prev, { role: "ai", text: response.text || "No response generated." }]);
+    } catch (error: any) {
+      console.error("Client-side Gemini Error:", error);
+      updateCurrentSession((prev) => [...prev, { role: "ai", text: `Sorry, something went wrong. ${error.message}` }]);
     } finally {
       setLoading(false);
     }

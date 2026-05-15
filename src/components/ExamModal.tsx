@@ -56,29 +56,60 @@ export function ExamModal({ profile, onClose }: { profile: any; onClose: () => v
   const handleGenerate = async () => {
     setStep("loading");
     try {
-      const res = await fetch("/api/ai/generate-exam", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          subject: selectedSubject,
-          chapter: selectedChapter,
-          topic: topic,
-          numQuestions: Number(numQuestions) || 5,
-          profile: profile,
-        }),
+      const { GoogleGenAI, Type } = await import("@google/genai");
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      if (!apiKey) throw new Error("Gemini API key is not configured. Please add it to your environment variables on Netlify.");
+
+      const ai = new GoogleGenAI({ apiKey });
+      
+      const examSchema = {
+        type: Type.OBJECT,
+        properties: {
+          questions: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                question: { type: Type.STRING, description: "Question text in Bengali" },
+                options: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Options in Bengali" },
+                correctIndex: { type: Type.INTEGER, description: "Index of the correct option (0 to 3)" },
+                explanation: { type: Type.STRING, description: "Short explanation for the correct answer in Bengali" }
+              },
+              required: ["question", "options", "correctIndex", "explanation"]
+            }
+          }
+        },
+        required: ["questions"]
+      };
+
+      const topicInstruction = topic ? `\nSpecific Topic Focus: ${topic}` : "";
+      const profileInstruction = profile ? `\nTarget Audience: Name: ${profile.name || "N/A"}, Group: ${profile.group || "N/A"}, College: ${profile.college || "N/A"}, HSC Year: ${profile.hscYear || "N/A"}` : "";
+
+      const response = await ai.models.generateContent({
+        model: "gemini-1.5-flash",
+        contents: `Create a multiple choice exam in Bengali for HSC students. ${profileInstruction}
+Subject: ${selectedSubject}
+Chapter: ${selectedChapter}${topicInstruction}
+Number of questions: ${Number(numQuestions) || 5}
+Ensure the questions are academic, accurate, and suitable for HSC level. ALL questions and options MUST be in Bengali.`,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: examSchema,
+          temperature: 0.7,
+        }
       });
 
-      if (!res.ok) throw new Error("Failed to generate exam");
-      const data = await res.json();
+      if (!response.text) throw new Error("No text returned from Gemini");
+      const data = JSON.parse(response.text);
       
       setQuestions(data.questions);
       setAnswers({});
       setCurrentQIndex(0);
       startTimer(Number(timeLimitMin) || 10);
       setStep("exam");
-    } catch (error) {
-      console.error(error);
-      alert("Failed to generate exam. Please try again.");
+    } catch (error: any) {
+      console.error("Client-side Gemini Error:", error);
+      alert("Failed to generate exam. " + error.message);
       setStep("setup");
     }
   };

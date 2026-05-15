@@ -210,6 +210,13 @@ export default function App() {
                 <RotateCcw className="w-4 h-4" /> Reset
               </button>
               <button
+                onClick={() => document.body.classList.toggle('light-mode')}
+                className="text-slate-400 hover:text-white px-3 py-2 flex items-center justify-center transition-all bg-slate-900 border border-slate-800 hover:bg-slate-800 rounded-xl"
+                title="Toggle Theme"
+              >
+                🌓 Theme
+              </button>
+              <button
                 onClick={() => setShowProfile(true)}
                 className="text-slate-400 hover:text-white px-3 py-2 flex items-center justify-center transition-all bg-slate-900 border border-slate-800 hover:bg-slate-800 rounded-xl"
                 title="Edit Profile"
@@ -333,8 +340,8 @@ export default function App() {
                             key={task}
                             className="pb-2 px-4 font-medium text-center whitespace-nowrap group relative"
                           >
-                            <span className="truncate max-w-[80px] inline-block cursor-help">
-                              {task.split(" ")[0]}..
+                            <span className="inline-block cursor-help">
+                              {task}
                             </span>
                             <div className="pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-800 text-xs rounded border border-slate-700 z-50 whitespace-nowrap text-white">
                               {task}
