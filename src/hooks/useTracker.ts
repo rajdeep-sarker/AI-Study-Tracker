@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { TrackerData, TaskStatus } from "../types";
+import { TrackerData, TaskStatus, UserProfileData } from "../types";
 import { SYLLABUS, TASKS } from "../data";
 import { auth, db } from "../lib/firebase";
 import { doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
@@ -22,7 +22,7 @@ export function useAuth() {
 
 export function useTracker(user: User | null) {
   const [data, setData] = useState<TrackerData | null>(null);
-  const [profile, setProfile] = useState<{ name: string, mobile: string, college: string, hscYear: string, group: string }>({ name: "", mobile: "", college: "", hscYear: "", group: "" });
+  const [profile, setProfile] = useState<UserProfileData>({});
   const [loadingData, setLoadingData] = useState(true);
   const lastSyncRef = useRef<string>("");
 
@@ -41,14 +41,14 @@ export function useTracker(user: User | null) {
         try {
           const rawData = snap.data().trackerData;
           setProfile(prev => {
-            const nextCollege = snap.data().college || "";
-            const nextHscYear = snap.data().hscYear || "";
-            const nextName = snap.data().name || "";
-            const nextMobile = snap.data().mobile || "";
-            const nextGroup = snap.data().group || "";
-            
-            if (prev.college === nextCollege && prev.hscYear === nextHscYear && prev.name === nextName && prev.mobile === nextMobile && prev.group === nextGroup) return prev;
-            return { college: nextCollege, hscYear: nextHscYear, name: nextName, mobile: nextMobile, group: nextGroup };
+            const nextProfile: UserProfileData = snap.data() || {};
+            // Omit trackerData and ownerId and updatedAt
+            delete (nextProfile as any).trackerData;
+            delete (nextProfile as any).ownerId;
+            delete (nextProfile as any).updatedAt;
+            // A simple JSON stringify compare for nested fields instead of writing 50 line compare
+            if (JSON.stringify(prev) === JSON.stringify(nextProfile)) return prev;
+            return nextProfile;
           });
           if (rawData === lastSyncRef.current) return; // Skip if it's our own recent write
           const parsed = JSON.parse(rawData);
@@ -205,7 +205,7 @@ export function useTracker(user: User | null) {
     reader.readAsText(file);
   };
 
-  const updateProfile = async (profileData: { name: string, mobile: string, group: string, college: string, hscYear: string }) => {
+  const updateProfile = async (profileData: UserProfileData) => {
     if (!user) return;
     try {
       setProfile(profileData);

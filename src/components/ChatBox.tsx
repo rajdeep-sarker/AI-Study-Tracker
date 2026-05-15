@@ -274,7 +274,7 @@ IMPORTANT: Reply in the same language the user uses. If they speak Bengali, resp
         )}
       </div>
 
-      <div className="p-4 pb-6 md:pb-8 bg-slate-950 border-t border-slate-800 flex flex-col gap-2 shadow-[0_-10px_30px_rgba(0,0,0,0.3)]">
+      <div className="p-4 bg-slate-950 border-t border-slate-800 flex flex-col gap-2">
         {attachedFiles.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-2">
             {attachedFiles.map((f, i) => (

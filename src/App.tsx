@@ -22,7 +22,7 @@ import { logoutUser } from "./lib/firebase";
 import { ChatBox } from "./components/ChatBox";
 import { ExamModal } from "./components/ExamModal";
 
-import { ProfileModal } from "./components/ProfileModal";
+import { UserProfile } from "./components/UserProfile";
 
 const TaskIcon = ({ status }: { status: TaskStatus }) => {
   switch (status) {
@@ -132,7 +132,7 @@ export default function App() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showChat, setShowChat] = useState(false);
   const [showExam, setShowExam] = useState(false);
-  const [showProfile, setShowProfile] = useState(false);
+  const [currentView, setCurrentView] = useState<"dashboard" | "profile">("dashboard");
 
   if (authLoading) {
     return <div className="min-h-screen flex items-center justify-center bg-slate-950"><Clock className="w-10 h-10 text-primary animate-spin" /></div>;
@@ -152,6 +152,10 @@ export default function App() {
   }
 
   const { percent, done, total } = getOverallProgress();
+
+  if (currentView === "profile") {
+    return <UserProfile profile={profile} onSave={updateProfile} onBack={() => setCurrentView("dashboard")} />;
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-50 flex flex-col font-sans pb-20 relative">
@@ -217,7 +221,7 @@ export default function App() {
                 🌓 Theme
               </button>
               <button
-                onClick={() => setShowProfile(true)}
+                onClick={() => setCurrentView("profile")}
                 className="flex items-center justify-center h-10 px-4 gap-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 rounded-xl text-sm font-medium transition-all shadow-sm whitespace-nowrap"
                 title="Edit Profile"
               >
@@ -393,9 +397,6 @@ export default function App() {
         )}
         {showExam && (
           <ExamModal profile={profile} onClose={() => setShowExam(false)} />
-        )}
-        {showProfile && (
-          <ProfileModal profile={profile} onSave={updateProfile} onClose={() => setShowProfile(false)} />
         )}
       </AnimatePresence>
     </div>

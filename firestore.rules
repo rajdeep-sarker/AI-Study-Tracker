@@ -15,20 +15,11 @@ service cloud.firestore {
 
     // Validation Helpers
     function isValidUserMap() {
-      // Allow only valid keys
-      // It supports partial updates since setDoc with merge: true is used
-      let hasOnlyValidKeys = incoming().keys().hasOnly(['ownerId', 'trackerData', 'updatedAt', 'name', 'mobile', 'group', 'college', 'hscYear']);
-      
       let ownerIdValid = incoming().keys().hasAny(['ownerId']) ? (incoming().ownerId is string && incoming().ownerId == request.auth.uid) : true;
       let trackerDataValid = incoming().keys().hasAny(['trackerData']) ? incoming().trackerData is string : true;
       let updatedAtValid = incoming().keys().hasAny(['updatedAt']) ? incoming().updatedAt is string : true;
-      let nameValid = incoming().keys().hasAny(['name']) ? incoming().name is string : true;
-      let mobileValid = incoming().keys().hasAny(['mobile']) ? incoming().mobile is string : true;
-      let groupValid = incoming().keys().hasAny(['group']) ? incoming().group is string : true;
-      let collegeValid = incoming().keys().hasAny(['college']) ? incoming().college is string : true;
-      let hscYearValid = incoming().keys().hasAny(['hscYear']) ? incoming().hscYear is string : true;
-
-      return hasOnlyValidKeys && ownerIdValid && trackerDataValid && updatedAtValid && nameValid && mobileValid && groupValid && collegeValid && hscYearValid;
+      
+      return ownerIdValid && trackerDataValid && updatedAtValid;
     }
 
     match /users/{userId} {
