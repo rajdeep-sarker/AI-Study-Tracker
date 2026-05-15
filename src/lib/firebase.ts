@@ -25,13 +25,3 @@ export const logoutUser = async () => {
   }
 };
 
-async function testConnection() {
-  try {
-    await getDocFromServer(doc(db, "test", "connection"));
-  } catch (error: any) {
-    if (error.message && error.message.includes("offline")) {
-      console.error("Please check your Firebase configuration.");
-    }
-  }
-}
-testConnection();
