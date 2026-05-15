@@ -1,0 +1,8 @@
+{
+  "name": "HSC Tracker Pro",
+  "description": "Advanced interactive study tracker for HSC students.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

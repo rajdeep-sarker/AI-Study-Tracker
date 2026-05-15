@@ -1,0 +1,44 @@
+{
+  "entities": {
+    "UserProgress": {
+      "title": "User Progress",
+      "description": "Stores user tracking data",
+      "type": "object",
+      "properties": {
+        "trackerData": {
+          "type": "string",
+          "description": "Stringified JSON of the tracker data"
+        },
+        "ownerId": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp"
+        },
+        "college": {
+          "type": "string"
+        },
+        "hscYear": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "mobile": {
+          "type": "string"
+        },
+        "group": {
+          "type": "string"
+        }
+      },
+      "required": ["ownerId", "trackerData", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProgress",
+      "description": "User progress details"
+    }
+  }
+}
