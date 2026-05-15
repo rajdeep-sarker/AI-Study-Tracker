@@ -1,38 +1,52 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
+    // 0. Global Safety Net
     match /{document=**} {
       allow read, write: if false;
     }
 
-    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\\\-]+$'); }
+    // Primitive Helpers
+    function isSignedIn() { return request.auth != null; }
     function incoming() { return request.resource.data; }
     function existing() { return resource.data; }
-    function isSignedIn() { return request.auth != null; }
-    
-    function isValidUserProgress(data) {
-      return data.keys().hasAll(['ownerId', 'trackerData']) 
-        && data.ownerId == request.auth.uid
-        && data.trackerData is string
-        && data.trackerData.size() <= 1048576;
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+
+    // Validation Helpers
+    function isValidUserMap() {
+      // Allow only valid keys
+      // It supports partial updates since setDoc with merge: true is used
+      let hasOnlyValidKeys = incoming().keys().hasOnly(['ownerId', 'trackerData', 'updatedAt', 'name', 'mobile', 'group', 'college', 'hscYear']);
+      
+      let ownerIdValid = incoming().keys().hasAny(['ownerId']) ? (incoming().ownerId is string && incoming().ownerId == request.auth.uid) : true;
+      let trackerDataValid = incoming().keys().hasAny(['trackerData']) ? incoming().trackerData is string : true;
+      let updatedAtValid = incoming().keys().hasAny(['updatedAt']) ? incoming().updatedAt is string : true;
+      let nameValid = incoming().keys().hasAny(['name']) ? incoming().name is string : true;
+      let mobileValid = incoming().keys().hasAny(['mobile']) ? incoming().mobile is string : true;
+      let groupValid = incoming().keys().hasAny(['group']) ? incoming().group is string : true;
+      let collegeValid = incoming().keys().hasAny(['college']) ? incoming().college is string : true;
+      let hscYearValid = incoming().keys().hasAny(['hscYear']) ? incoming().hscYear is string : true;
+
+      return hasOnlyValidKeys && ownerIdValid && trackerDataValid && updatedAtValid && nameValid && mobileValid && groupValid && collegeValid && hscYearValid;
     }
 
     match /users/{userId} {
-      allow read: if isSignedIn() && isValidId(userId) && userId == request.auth.uid;
+      // Only the owner can read their own document
+      allow get: if isSignedIn() && request.auth.uid == userId;
+      // No listing allowed to prevent scraping
+      allow list: if false;
       
-      allow create: if isSignedIn() 
-        && isValidId(userId)
-        && userId == request.auth.uid
-        && isValidUserProgress(incoming());
-
-      allow update: if isSignedIn()
-        && isValidId(userId)
-        && userId == request.auth.uid
-        && existing().ownerId == request.auth.uid
-        && incoming().ownerId == existing().ownerId
-        && isValidUserProgress(incoming())
-        && incoming().diff(existing()).affectedKeys().hasOnly(['trackerData', 'updatedAt', 'college', 'hscYear', 'name', 'mobile', 'group']);
-        
+      // Allow create and update if user matches ID and sends valid data
+      allow create: if isSignedIn() && request.auth.uid == userId && isValidId(userId) && isValidUserMap();
+      
+      allow update: if isSignedIn() && 
+                       request.auth.uid == userId && 
+                       isValidId(userId) && 
+                       isValidUserMap() && 
+                       // Protect ownerId from being modified after creation
+                       (incoming().keys().hasAny(['ownerId']) ? incoming().ownerId == existing().ownerId : true);
+                       
       allow delete: if false;
     }
   }
