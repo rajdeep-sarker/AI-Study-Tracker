@@ -167,22 +167,22 @@ export default function App() {
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <button
                 onClick={() => setShowExam(true)}
-                className="flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 rounded-xl text-sm font-bold transition-all shadow-md shadow-emerald-500/20"
+                className="flex items-center justify-center h-10 px-4 gap-2 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 rounded-xl text-sm font-bold transition-all shadow-md shadow-emerald-500/20 whitespace-nowrap"
               >
                 📝 Take Exam
               </button>
               <button
                 onClick={() => setShowChat(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 hover:bg-indigo-500/20 text-indigo-400 rounded-xl text-sm font-semibold transition-all shadow-sm"
+                className="flex items-center justify-center h-10 px-4 gap-2 bg-indigo-500/10 border border-indigo-500/20 hover:bg-indigo-500/20 text-indigo-400 rounded-xl text-sm font-medium transition-all shadow-sm whitespace-nowrap"
               >
                 <Bot className="w-4 h-4" /> AI Assistant
               </button>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="flex items-center gap-2 px-4 py-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 rounded-xl text-sm font-semibold transition-all shadow-sm hidden md:flex"
+                className="hidden md:flex items-center justify-center h-10 px-4 gap-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 rounded-xl text-sm font-medium transition-all shadow-sm whitespace-nowrap"
               >
                 <Upload className="w-4 h-4" /> Import
               </button>
@@ -197,7 +197,7 @@ export default function App() {
               />
               <button
                 onClick={exportData}
-                className="flex items-center gap-2 px-4 py-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 rounded-xl text-sm font-semibold transition-all shadow-sm hidden md:flex"
+                className="hidden md:flex items-center justify-center h-10 px-4 gap-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 rounded-xl text-sm font-medium transition-all shadow-sm whitespace-nowrap"
               >
                 <Download className="w-4 h-4" /> Export
               </button>
@@ -205,27 +205,27 @@ export default function App() {
                 onClick={() => {
                   if (confirm("Are you sure? All progress will be lost!")) resetData();
                 }}
-                className="flex items-center gap-2 px-5 py-2 bg-primary-dark hover:bg-primary-hover text-white rounded-xl text-sm font-bold transition-all shadow-md shadow-primary/20 hidden md:flex"
+                className="hidden md:flex items-center justify-center h-10 px-4 gap-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 rounded-xl text-sm font-medium transition-all shadow-sm whitespace-nowrap"
               >
                 <RotateCcw className="w-4 h-4" /> Reset
               </button>
               <button
                 onClick={() => document.body.classList.toggle('light-mode')}
-                className="text-slate-400 hover:text-white px-3 py-2 flex items-center justify-center transition-all bg-slate-900 border border-slate-800 hover:bg-slate-800 rounded-xl"
+                className="flex items-center justify-center h-10 px-4 gap-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 rounded-xl text-sm font-medium transition-all shadow-sm whitespace-nowrap"
                 title="Toggle Theme"
               >
                 🌓 Theme
               </button>
               <button
                 onClick={() => setShowProfile(true)}
-                className="text-slate-400 hover:text-white px-3 py-2 flex items-center justify-center transition-all bg-slate-900 border border-slate-800 hover:bg-slate-800 rounded-xl"
+                className="flex items-center justify-center h-10 px-4 gap-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 rounded-xl text-sm font-medium transition-all shadow-sm whitespace-nowrap"
                 title="Edit Profile"
               >
                 🎓 Profile
               </button>
               <button
                 onClick={logoutUser}
-                className="flex items-center gap-2 px-4 py-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 rounded-xl text-sm font-semibold transition-all shadow-sm"
+                className="flex items-center justify-center h-10 px-4 gap-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 rounded-xl text-sm font-medium transition-all shadow-sm whitespace-nowrap"
               >
                 <LogOut className="w-4 h-4" /> Logout
               </button>
