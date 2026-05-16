@@ -22,6 +22,7 @@ export function useAuth() {
 
 export function useTracker(user: User | null) {
   const [data, setData] = useState<TrackerData | null>(null);
+  const [customTasks, setCustomTasks] = useState<Record<string, string[]>>({});
   const [profile, setProfile] = useState<UserProfileData>({});
   const [loadingData, setLoadingData] = useState(true);
   const lastSyncRef = useRef<string>("");
@@ -29,6 +30,7 @@ export function useTracker(user: User | null) {
   useEffect(() => {
     if (!user) {
       setData(null);
+      setCustomTasks({});
       setLoadingData(false);
       return;
     }
@@ -40,10 +42,13 @@ export function useTracker(user: User | null) {
       if (snap.exists()) {
         try {
           const rawData = snap.data().trackerData;
+          setCustomTasks(snap.data().customTasks || {});
+          
           setProfile(prev => {
             const nextProfile: UserProfileData = snap.data() || {};
             // Omit trackerData and ownerId and updatedAt
             delete (nextProfile as any).trackerData;
+            delete (nextProfile as any).customTasks;
             delete (nextProfile as any).ownerId;
             delete (nextProfile as any).updatedAt;
             // A simple JSON stringify compare for nested fields instead of writing 50 line compare
@@ -51,8 +56,10 @@ export function useTracker(user: User | null) {
             return nextProfile;
           });
           if (rawData === lastSyncRef.current) return; // Skip if it's our own recent write
-          const parsed = JSON.parse(rawData);
-          setData(parsed);
+          if (rawData) {
+            const parsed = JSON.parse(rawData);
+            setData(parsed);
+          }
           setLoadingData(false);
         } catch (e) {
           console.error("Error parsing user data");
@@ -82,20 +89,42 @@ export function useTracker(user: User | null) {
   }, [user]);
 
   // Sync mutation to Firestore
-  const syncToFirestore = useCallback(async (newData: TrackerData) => {
+  const syncToFirestore = useCallback(async (newData: TrackerData, newCustomTasks?: Record<string, string[]>) => {
     if (!user) return;
     try {
       const dataStr = JSON.stringify(newData);
       lastSyncRef.current = dataStr;
-      await setDoc(doc(db, "users", user.uid), {
+      const payload: any = {
         ownerId: user.uid,
         trackerData: dataStr,
         updatedAt: new Date().toISOString()
-      }, { merge: true });
+      };
+      if (newCustomTasks) payload.customTasks = newCustomTasks;
+      await setDoc(doc(db, "users", user.uid), payload, { merge: true });
     } catch (e) {
       console.error("Failed to sync to firestore", e);
     }
   }, [user]);
+
+  const addCustomTask = async (subject: string, taskName: string) => {
+    if (!user || !taskName.trim()) return;
+    
+    // Check if task exists globally or as custom
+    if (TASKS.includes(taskName.trim()) || (customTasks[subject] || []).includes(taskName.trim())) {
+      alert("Task already exists");
+      return;
+    }
+    
+    const nextCustomTasks = {
+      ...customTasks,
+      [subject]: [...(customTasks[subject] || []), taskName.trim()]
+    };
+    
+    setCustomTasks(nextCustomTasks);
+    if (data) {
+      await syncToFirestore(data, nextCustomTasks);
+    }
+  };
 
   const toggleStatus = useCallback((subject: string, chapter: string, taskIndex: number) => {
     if (!user) return;
@@ -134,7 +163,8 @@ export function useTracker(user: User | null) {
     if (!data || !data[subject] || !data[subject][chapter]) return 0;
     const tasksArray = data[subject][chapter];
     const doneCount = tasksArray.filter((status) => status === 2).length;
-    return (doneCount / TASKS.length) * 100;
+    const totalSubjectTasks = TASKS.length + (customTasks[subject]?.length || 0);
+    return (doneCount / totalSubjectTasks) * 100;
   };
 
   const getSubjectProgress = (subject: string): number => {
@@ -155,8 +185,9 @@ export function useTracker(user: User | null) {
     let doneTasks = 0;
 
     SYLLABUS.forEach((sub) => {
+      const subjectTotalTasks = TASKS.length + (customTasks[sub.subject]?.length || 0);
       sub.chapters.forEach((chap) => {
-        totalTasks += TASKS.length;
+        totalTasks += subjectTotalTasks;
         if (data[sub.subject] && data[sub.subject][chap]) {
           doneTasks += data[sub.subject][chap].filter((st) => st === 2).length;
         }
@@ -176,7 +207,8 @@ export function useTracker(user: User | null) {
         initial[sub.subject][chap] = new Array(TASKS.length).fill(0);
       });
     });
-    await syncToFirestore(initial);
+    setCustomTasks({});
+    await syncToFirestore(initial, {});
   };
 
   const exportData = () => {
@@ -230,5 +262,7 @@ export function useTracker(user: User | null) {
     exportData,
     importData,
     updateProfile,
+    customTasks,
+    addCustomTask,
   };
 }

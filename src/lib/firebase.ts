@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, signInWithEmailAndPassword } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { getFirestore, doc, getDocFromServer, setDoc } from "firebase/firestore";
 import firebaseConfig from "../../firebase-applet-config.json";
 
@@ -19,6 +19,10 @@ export const loginWithGoogle = async () => {
 
 export const loginWithEmail = async (email: string, pass: string) => {
   return await signInWithEmailAndPassword(auth, email, pass);
+};
+
+export const resetPassword = async (email: string) => {
+  return await sendPasswordResetEmail(auth, email);
 };
 
 export const logoutUser = async () => {

@@ -1,18 +1,12 @@
 import { SyllabusSubject } from "./types";
 
 export const TASKS = [
-  "Do Class",
-  "Academic Handnote",
-  "Textbook Reading",
+  "Academic class",
+  "Textbook reading",
+  "Textbook problem solve",
+  "Test paper solve",
+  "Engineering Question Bank Solve",
   "Concept Book",
-  "Textbook Problems",
-  "Board/Test Paper",
-  "Formula Note",
-  "Varsity QB",
-  "Engineering QB",
-  "Medical QB",
-  "Admission Short Note",
-  "Advanced/JEE",
 ];
 
 export const SYLLABUS: SyllabusSubject[] = [

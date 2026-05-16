@@ -127,6 +127,8 @@ export default function App() {
     exportData,
     importData,
     updateProfile,
+    customTasks,
+    addCustomTask,
   } = useTracker(user);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -158,8 +160,11 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-50 flex flex-col font-sans pb-20 relative">
-      <header className="pt-8 pb-6 px-4 md:px-8 border-b-0">
+    <div className="min-h-screen bg-slate-950 text-slate-50 flex flex-col font-sans pb-20 relative selection:bg-indigo-500/30">
+      {/* Decorative gradient overlay */}
+      <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-indigo-900/10 via-slate-950/0 to-transparent pointer-events-none z-0"></div>
+      
+      <header className="pt-8 pb-6 px-4 md:px-8 border-b-0 relative z-10">
         <div className="max-w-[1400px] mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
             <div>
@@ -291,6 +296,7 @@ export default function App() {
       <main className="max-w-[1400px] mx-auto px-4 md:px-8 mt-6 space-y-8 w-full">
         {SYLLABUS.map((sub) => {
           const subProgress = getSubjectProgress(sub.subject);
+          const subjectTasks = [...TASKS, ...(customTasks[sub.subject] || [])];
           return (
             <motion.section 
               key={sub.subject} 
@@ -311,7 +317,7 @@ export default function App() {
                         {sub.subject}
                       </h2>
                       <p className="text-xs text-slate-500">
-                        {sub.chapters.length} Chapters • {TASKS.length} Tasks per chapter
+                        {sub.chapters.length} Chapters • {subjectTasks.length} Tasks per chapter
                       </p>
                     </div>
                   </div>
@@ -339,30 +345,46 @@ export default function App() {
                         <th className="pb-2 px-4 font-medium text-center whitespace-nowrap min-w-[120px]">
                           Progress
                         </th>
-                        {TASKS.map((task) => (
+                        {subjectTasks.map((task, index) => (
                           <th
-                            key={task}
+                            key={`${task}-${index}`}
                             className="pb-2 px-4 font-medium text-center whitespace-nowrap group relative"
                           >
                             <span className="inline-block cursor-help">
-                              {task}
+                              {task.length > 20 ? task.substring(0, 17) + "..." : task}
                             </span>
                             <div className="pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-800 text-xs rounded border border-slate-700 z-50 whitespace-nowrap text-white">
                               {task}
                             </div>
                           </th>
                         ))}
+                        <th className="pb-2 px-4 font-medium text-center whitespace-nowrap">
+                          <button
+                            onClick={() => {
+                              const title = prompt("Enter new column name for " + sub.subject);
+                              if (title) addCustomTask(sub.subject, title);
+                            }}
+                            className="bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-400 border border-indigo-500/30 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm"
+                          >
+                            + Add Column
+                          </button>
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       {sub.chapters.map((chap) => {
                         const chapProgress = getChapterProgress(sub.subject, chap);
+                        // Ensure tasks array has enough elements dynamically
+                        const rawTasks = data[sub.subject][chap] || [];
+                        const paddedTasks = [...rawTasks];
+                        while(paddedTasks.length < subjectTasks.length) paddedTasks.push(0);
+                        
                         return (
                           <ChapterRow
                             key={chap}
                             subject={sub.subject}
                             chap={chap}
-                            tasksArray={data[sub.subject][chap]}
+                            tasksArray={paddedTasks}
                             chapProgress={chapProgress}
                             toggleStatus={toggleStatus}
                           />
