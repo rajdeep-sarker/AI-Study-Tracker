@@ -174,7 +174,7 @@ IMPORTANT: Reply in the same language the user uses. If they speak Bengali, resp
       });
 
       const response = await ai.models.generateContent({
-        model: "gemini-1.5-flash",
+        model: "gemini-2.5-flash",
         contents: contents,
         config: {
           systemInstruction: systemInstruction,
