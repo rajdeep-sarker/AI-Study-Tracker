@@ -66,7 +66,7 @@ IMPORTANT: Reply in the same language the user uses. If they speak Bengali, resp
       });
 
       const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "gemini-3-flash-preview",
         contents: contents,
         config: {
           systemInstruction: systemInstruction,
@@ -109,7 +109,7 @@ IMPORTANT: Reply in the same language the user uses. If they speak Bengali, resp
       const profileInstruction = profile ? `\nTarget Audience: Name: ${profile.name || "N/A"}, Group: ${profile.group || "N/A"}, College: ${profile.college || "N/A"}, HSC Year: ${profile.hscYear || "N/A"}` : "";
 
       const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "gemini-3-flash-preview",
         contents: `Create a multiple choice exam in Bengali for HSC students. ${profileInstruction}
 Subject: ${subject}
 Chapter: ${chapter}${topicInstruction}

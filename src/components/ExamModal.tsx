@@ -86,7 +86,7 @@ export function ExamModal({ profile, onClose }: { profile: any; onClose: () => v
       const profileInstruction = profile ? `\nTarget Audience: Name: ${profile.name || "N/A"}, Group: ${profile.group || "N/A"}, College: ${profile.college || "N/A"}, HSC Year: ${profile.hscYear || "N/A"}` : "";
 
       const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "gemini-3-flash-preview",
         contents: `Create a multiple choice exam in Bengali for HSC students. ${profileInstruction}
 Subject: ${selectedSubject}
 Chapter: ${selectedChapter}${topicInstruction}
